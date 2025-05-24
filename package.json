@@ -1,0 +1,23 @@
+{
+  "name": "tokenflow",
+  "version": "1.0.0",
+  "description": "Chrome extension to track token usage in AI chat platforms",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "gpt-tokenizer": "^2.9.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.254",
+    "@types/node": "^20.10.5",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vite-plugin-static-copy": "^1.0.0"
+  }
+}

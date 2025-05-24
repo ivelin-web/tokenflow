@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TokenFlow Options</title>
+  <style>
+    :root {
+      --primary-color: #10a37f;
+      --primary-hover: #0d8c6d;
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --border-color: #e0e0e0;
+      --text-color: #343541;
+      --text-secondary: #6e6e80;
+      --danger: #ef4146;
+      --warning: #f97316;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-color);
+    }
+
+    .description {
+      color: var(--text-secondary);
+      font-size: 14px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .card-title svg {
+      margin-right: 8px;
+      color: var(--primary-color);
+    }
+
+    .model-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .model-item:last-child {
+      border-bottom: none;
+    }
+
+    .model-name {
+      flex: 1;
+      font-weight: 500;
+      white-space: nowrap;
+      padding-right: 10px;
+    }
+
+    .model-tokens {
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="number"] {
+      width: 120px;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--text-color);
+      transition: border 0.2s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .token-suffix {
+      color: var(--text-secondary);
+      margin-left: 8px;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .platform-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .platform-item:last-child {
+      border-bottom: none;
+    }
+
+    .platform-name {
+      flex: 1;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+    }
+
+    .platform-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+    }
+
+    .platform-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Toggle Switch Styles */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--primary-color);
+    }
+
+    input:focus + .toggle-slider {
+      box-shadow: 0 0 1px var(--primary-color);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 24px;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 14px;
+      display: none;
+      font-weight: 500;
+      transform: translateY(-10px);
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .success {
+      background-color: rgba(16, 163, 127, 0.1);
+      color: var(--primary-color);
+      display: block;
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .notice {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    /* Token meter styles */
+    #token-usage-card {
+      margin-bottom: 24px;
+    }
+
+    .token-meter-info {
+      font-size: 15px;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .token-meter-progress {
+      margin-bottom: 8px;
+    }
+
+    .token-meter-bar {
+      height: 8px;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    #token-meter-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--primary-color);
+      border-radius: 4px;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .token-meter-model {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 4px;
+    }
+    
+    /* Platform toggle help text */
+    .platform-help {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      margin-left: 30px;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>TokenFlow Options</h1>
+      <p class="description">Customize token limits for different models to match your needs.</p>
+    </div>
+    
+    <div class="card" id="token-usage-card">
+      <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Current Token Usage
+      </h2>
+      
+      <div id="token-meter-container">
+        <div class="token-meter-info">
+          <span id="token-meter-text">Loading token information...</span>
+        </div>
+        <div class="token-meter-progress">
+          <div class="token-meter-bar">
+            <div id="token-meter-fill"></div>
+          </div>
+        </div>
+        <div class="token-meter-model">
+          <span id="current-model">No active chat</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 7L12 3L4 7V17L12 21L20 17V7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 12L12 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 7L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 7L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Model Token Limits
+      </h2>
+      
+      <div class="model-item">
+        <div class="model-name">GPT-4o</div>
+        <div class="model-tokens">
+          <input type="number" id="gpt-4o" min="1000" max="200000" step="1000">
+          <span class="token-suffix">tokens</span>
+        </div>
+      </div>
+      
+      <div class="model-item">
+        <div class="model-name">GPT-4.1</div>
+        <div class="model-tokens">
+          <input type="number" id="gpt-4.1" min="1000" max="1000000" step="1000">
+          <span class="token-suffix">tokens</span>
+        </div>
+      </div>
+      
+      <div class="model-item">
+        <div class="model-name">GPT-4.1-mini</div>
+        <div class="model-tokens">
+          <input type="number" id="gpt-4.1-mini" min="1000" max="1000000" step="1000">
+          <span class="token-suffix">tokens</span>
+        </div>
+      </div>
+      
+      <div class="model-item">
+        <div class="model-name">o3</div>
+        <div class="model-tokens">
+          <input type="number" id="o3" min="1000" max="200000" step="1000">
+          <span class="token-suffix">tokens</span>
+        </div>
+      </div>
+      
+      <div class="model-item">
+        <div class="model-name">o4-mini</div>
+        <div class="model-tokens">
+          <input type="number" id="o4-mini" min="1000" max="200000" step="1000">
+          <span class="token-suffix">tokens</span>
+        </div>
+      </div>
+      
+      <div class="model-item">
+        <div class="model-name">o4-mini-high</div>
+        <div class="model-tokens">
+          <input type="number" id="o4-mini-high" min="1000" max="200000" step="1000">
+          <span class="token-suffix">tokens</span>
+        </div>
+      </div>
+      
+      <div class="model-item">
+        <div class="model-name">GPT-4.5</div>
+        <div class="model-tokens">
+          <input type="number" id="gpt-4.5" min="1000" max="200000" step="1000">
+          <span class="token-suffix">tokens</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Platform Settings
+      </h2>
+      <p style="margin-top: 0; color: var(--text-secondary); margin-bottom: 16px; font-size: 14px;">
+        Enable or disable TokenFlow for specific platforms.
+      </p>
+      
+      <div class="platform-item">
+        <div class="platform-name">
+          <div class="platform-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="16px" height="16px">
+              <path d="M 14.070312 2 C 11.330615 2 8.9844456 3.7162572 8.0390625 6.1269531 C 6.061324 6.3911222 4.2941948 7.5446684 3.2773438 9.3066406 C 1.9078196 11.678948 2.2198602 14.567816 3.8339844 16.591797 C 3.0745422 18.436097 3.1891418 20.543674 4.2050781 22.304688 C 5.5751778 24.677992 8.2359331 25.852135 10.796875 25.464844 C 12.014412 27.045167 13.895916 28 15.929688 28 C 18.669385 28 21.015554 26.283743 21.960938 23.873047 C 23.938676 23.608878 25.705805 22.455332 26.722656 20.693359 C 28.09218 18.321052 27.78014 15.432184 26.166016 13.408203 C 26.925458 11.563903 26.810858 9.4563257 25.794922 7.6953125 C 24.424822 5.3220082 21.764067 4.1478652 19.203125 4.5351562 C 17.985588 2.9548328 16.104084 2 14.070312 2 z M 14.070312 4 C 15.226446 4 16.310639 4.4546405 17.130859 5.2265625 C 17.068225 5.2600447 17.003357 5.2865019 16.941406 5.3222656 L 12.501953 7.8867188 C 12.039953 8.1527187 11.753953 8.6456875 11.751953 9.1796875 L 11.724609 15.146484 L 9.5898438 13.900391 L 9.5898438 8.4804688 C 9.5898438 6.0104687 11.600312 4 14.070312 4 z M 20.492188 6.4667969 C 21.927441 6.5689063 23.290625 7.3584375 24.0625 8.6953125 C 24.640485 9.696213 24.789458 10.862812 24.53125 11.958984 C 24.470201 11.920997 24.414287 11.878008 24.351562 11.841797 L 19.910156 9.2773438 C 19.448156 9.0113437 18.879016 9.0103906 18.416016 9.2753906 L 13.236328 12.236328 L 13.248047 9.765625 L 17.941406 7.0546875 C 18.743531 6.5915625 19.631035 6.4055313 20.492188 6.4667969 z M 7.5996094 8.2675781 C 7.5972783 8.3387539 7.5898438 8.4087418 7.5898438 8.4804688 L 7.5898438 13.607422 C 7.5898438 14.141422 7.8729844 14.635297 8.3339844 14.904297 L 13.488281 17.910156 L 11.34375 19.134766 L 6.6484375 16.425781 C 4.5094375 15.190781 3.7747656 12.443687 5.0097656 10.304688 C 5.5874162 9.3043657 6.522013 8.5923015 7.5996094 8.2675781 z M 18.65625 10.865234 L 23.351562 13.574219 C 25.490562 14.809219 26.225234 17.556313 24.990234 19.695312 C 24.412584 20.695634 23.477987 21.407698 22.400391 21.732422 C 22.402722 21.661246 22.410156 21.591258 22.410156 21.519531 L 22.410156 16.392578 C 22.410156 15.858578 22.127016 15.364703 21.666016 15.095703 L 16.511719 12.089844 L 18.65625 10.865234 z M 15.009766 12.947266 L 16.78125 13.980469 L 16.771484 16.035156 L 14.990234 17.052734 L 13.21875 16.017578 L 13.228516 13.964844 L 15.009766 12.947266 z M 18.275391 14.853516 L 20.410156 16.099609 L 20.410156 21.519531 C 20.410156 23.989531 18.399687 26 15.929688 26 C 14.773554 26 13.689361 25.54536 12.869141 24.773438 C 12.931775 24.739955 12.996643 24.713498 13.058594 24.677734 L 17.498047 22.113281 C 17.960047 21.847281 18.246047 21.354312 18.248047 20.820312 L 18.275391 14.853516 z M 16.763672 17.763672 L 16.751953 20.234375 L 12.058594 22.945312 C 9.9195938 24.180312 7.1725 23.443687 5.9375 21.304688 C 5.3595152 20.303787 5.2105423 19.137188 5.46875 18.041016 C 5.5297994 18.079003 5.5857129 18.121992 5.6484375 18.158203 L 10.089844 20.722656 C 10.551844 20.988656 11.120984 20.989609 11.583984 20.724609 L 16.763672 17.763672 z"/>
+            </svg>
+          </div>
+          ChatGPT (OpenAI)
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="platform-chatgpt" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="platform-help">Toggles only the floating UI display. The extension remains active.</p>
+      
+      <div class="platform-item">
+        <div class="platform-name">
+          <div class="platform-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="16px" height="16px">
+              <path fill="#d19b75" d="M40,6H8C6.895,6,6,6.895,6,8v32c0,1.105,0.895,2,2,2h32c1.105,0,2-0.895,2-2V8	C42,6.895,41.105,6,40,6z"/>
+              <path fill="#252525" d="M22.197,14.234h-4.404L10.037,33.67c0-0.096,4.452,0,4.452,0l1.484-4.069h8.234l1.58,4.069h4.261	L22.197,14.234z M17.362,26.059l2.729-6.894l2.633,6.894C22.723,26.059,17.266,26.059,17.362,26.059z"/>
+              <path fill="#252525" d="M25.963,14.234L33.59,33.67h4.356l-7.803-19.436C30.144,14.234,25.963,14.186,25.963,14.234z"/>
+            </svg>
+          </div>
+          Claude (Anthropic)
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="platform-claude" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="platform-help">Toggles only the floating UI display. The extension remains active.</p>
+      
+      <div class="platform-item">
+        <div class="platform-name">
+          <div class="platform-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="16px" height="16px">
+              <radialGradient id="oDvWy9qKGfkbPZViUk7TCa" cx="-670.437" cy="617.13" r=".041" gradientTransform="matrix(128.602 652.9562 653.274 -128.6646 -316906.281 517189.719)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#1ba1e3"/>
+                <stop offset="0" stop-color="#1ba1e3"/>
+                <stop offset=".3" stop-color="#5489d6"/>
+                <stop offset=".545" stop-color="#9b72cb"/>
+                <stop offset=".825" stop-color="#d96570"/>
+                <stop offset="1" stop-color="#f49c46"/>
+              </radialGradient>
+              <path fill="url(#oDvWy9qKGfkbPZViUk7TCa)" d="M22.882,31.557l-1.757,4.024c-0.675,1.547-2.816,1.547-3.491,0l-1.757-4.024	c-1.564-3.581-4.378-6.432-7.888-7.99l-4.836-2.147c-1.538-0.682-1.538-2.919,0-3.602l4.685-2.08	c3.601-1.598,6.465-4.554,8.002-8.258l1.78-4.288c0.66-1.591,2.859-1.591,3.52,0l1.78,4.288c1.537,3.703,4.402,6.659,8.002,8.258	l4.685,2.08c1.538,0.682,1.538,2.919,0,3.602l-4.836,2.147C27.26,25.126,24.446,27.976,22.882,31.557z"/>
+              <radialGradient id="oDvWy9qKGfkbPZViUk7TCb" cx="-670.437" cy="617.13" r=".041" gradientTransform="matrix(128.602 652.9562 653.274 -128.6646 -316906.281 517189.719)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#1ba1e3"/>
+                <stop offset="0" stop-color="#1ba1e3"/>
+                <stop offset=".3" stop-color="#5489d6"/>
+                <stop offset=".545" stop-color="#9b72cb"/>
+                <stop offset=".825" stop-color="#d96570"/>
+                <stop offset="1" stop-color="#f49c46"/>
+              </radialGradient>
+              <path fill="url(#oDvWy9qKGfkbPZViUk7TCb)" d="M39.21,44.246l-0.494,1.132	c-0.362,0.829-1.51,0.829-1.871,0l-0.494-1.132c-0.881-2.019-2.467-3.627-4.447-4.506l-1.522-0.676	c-0.823-0.366-0.823-1.562,0-1.928l1.437-0.639c2.03-0.902,3.645-2.569,4.511-4.657l0.507-1.224c0.354-0.853,1.533-0.853,1.886,0	l0.507,1.224c0.866,2.088,2.481,3.755,4.511,4.657l1.437,0.639c0.823,0.366,0.823,1.562,0,1.928l-1.522,0.676	C41.677,40.619,40.091,42.227,39.21,44.246z"/>
+            </svg>
+          </div>
+          Gemini (Google)
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="platform-gemini" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="platform-help">Toggles only the floating UI display. The extension remains active.</p>
+      
+      <div class="platform-item">
+        <div class="platform-name">
+          <div class="platform-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="16px" height="16px">
+              <path d="M18.542 30.532l15.956-11.776c.783-.576 1.902-.354 2.274.545 1.962 4.728 1.084 10.411-2.819 14.315-3.903 3.901-9.333 4.756-14.299 2.808l-5.423 2.511c7.778 5.315 17.224 4 23.125-1.903 4.682-4.679 6.131-11.058 4.775-16.812l.011.011c-1.966-8.452.482-11.829 5.501-18.735C47.759 1.332 47.88 1.166 48 1l-6.602 6.599V7.577l-22.86 22.958M15.248 33.392c-5.582-5.329-4.619-13.579.142-18.339 3.521-3.522 9.294-4.958 14.331-2.847l5.412-2.497c-.974-.704-2.224-1.46-3.659-1.994-6.478-2.666-14.238-1.34-19.505 3.922C6.904 16.701 5.31 24.488 8.045 31.133c2.044 4.965-1.307 8.48-4.682 12.023C2.164 44.411.967 45.67 0 47l15.241-13.608"/>
+            </svg>
+          </div>
+          Grok (xAI)
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="platform-grok" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="platform-help">Toggles only the floating UI display. The extension remains active.</p>
+    </div>
+    
+    <div class="button-container">
+      <button id="save">Save Settings</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+    
+    <div class="notice">
+      Token counts are approximate and may differ slightly from official OpenAI counts.
+      These settings only affect how TokenFlow displays information.
+    </div>
+  </div>
+  
+  <script src="options.js"></script>
+</body>
+</html> 
