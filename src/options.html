@@ -1,93 +1,188 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TokenFlow Options</title>
+  <meta charset="UTF-8">
+  <title>TokenFlow</title>
   <style>
     :root {
-      --primary-color: #10a37f;
-      --primary-hover: #0d8c6d;
-      --bg-color: #f8f9fa;
+      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --gradient-warning: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      
+      --primary-color: #667eea;
+      --primary-hover: #5a6fd8;
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --bg-light: #f8fafc;
       --card-bg: #ffffff;
-      --border-color: #e0e0e0;
-      --text-color: #343541;
-      --text-secondary: #6e6e80;
-      --danger: #ef4146;
-      --warning: #f97316;
+      --card-shadow: 0 10px 25px rgba(102, 126, 234, 0.1);
+      --card-shadow-hover: 0 20px 40px rgba(102, 126, 234, 0.15);
+      --border-color: #e2e8f0;
+      --text-color: #2d3748;
+      --text-secondary: #718096;
+      --text-light: #a0aec0;
+      --accent: #ed64a6;
+      --success: #48bb78;
+      --warning: #ed8936;
+      --danger: #f56565;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: var(--bg-color);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Display', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg-light);
+      background-image: 
+        radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
       color: var(--text-color);
       line-height: 1.6;
       padding: 0;
       margin: 0;
       font-size: 15px;
+      min-height: 100vh;
     }
 
     .container {
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 32px 24px;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .logo {
+      width: 64px;
+      height: 64px;
+      background: var(--gradient-primary);
+      border-radius: 20px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
     }
 
     h1 {
-      font-size: 24px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text-color);
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
     }
 
     .description {
       color: var(--text-secondary);
-      font-size: 14px;
+      font-size: 16px;
       max-width: 500px;
       margin: 0 auto;
+      font-weight: 400;
     }
 
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: var(--card-shadow);
       margin-bottom: 24px;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-primary);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--card-shadow-hover);
     }
 
     .card-title {
-      font-weight: 600;
-      font-size: 18px;
+      font-weight: 700;
+      font-size: 20px;
       margin-top: 0;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
+      color: var(--text-color);
     }
 
     .card-title svg {
-      margin-right: 8px;
+      margin-right: 12px;
       color: var(--primary-color);
+      filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.2));
     }
 
-    .model-item {
+    .model-item, .platform-item {
       display: flex;
       align-items: center;
-      padding: 12px 0;
+      padding: 16px 0;
       border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.2s ease;
     }
 
-    .model-item:last-child {
+    .model-item:hover, .platform-item:hover {
+      background-color: rgba(102, 126, 234, 0.02);
+      border-radius: 12px;
+      margin: 0 -16px;
+      padding: 16px;
+    }
+
+    .model-item:last-child, .platform-item:last-child {
       border-bottom: none;
     }
 
-    .model-name {
+    .model-name, .platform-name {
       flex: 1;
-      font-weight: 500;
+      font-weight: 600;
       white-space: nowrap;
-      padding-right: 10px;
+      padding-right: 16px;
+      color: var(--text-color);
+    }
+
+    .platform-name {
+      display: flex;
+      align-items: center;
+    }
+
+    .platform-icon {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .platform-icon svg {
+      width: 20px;
+      height: 20px;
     }
 
     .model-tokens {
@@ -96,20 +191,23 @@
     }
 
     input[type="number"] {
-      width: 120px;
-      padding: 8px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
+      width: 140px;
+      padding: 12px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
       font-size: 14px;
+      font-weight: 500;
       color: var(--text-color);
-      transition: border 0.2s;
+      transition: all 0.2s ease;
+      background: rgba(102, 126, 234, 0.02);
       -moz-appearance: textfield;
     }
 
     input[type="number"]:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      transform: scale(1.02);
     }
 
     input[type="number"]::-webkit-outer-spin-button,
@@ -120,50 +218,18 @@
 
     .token-suffix {
       color: var(--text-secondary);
-      margin-left: 8px;
+      margin-left: 12px;
       font-size: 14px;
+      font-weight: 500;
       white-space: nowrap;
     }
 
-    .platform-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .platform-item:last-child {
-      border-bottom: none;
-    }
-
-    .platform-name {
-      flex: 1;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-    }
-
-    .platform-icon {
-      width: 20px;
-      height: 20px;
-      margin-right: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--primary-color);
-    }
-
-    .platform-icon svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    /* Toggle Switch Styles */
+    /* Enhanced Toggle Switch */
     .toggle-switch {
       position: relative;
       display: inline-block;
-      width: 46px;
-      height: 24px;
+      width: 56px;
+      height: 28px;
     }
 
     .toggle-switch input {
@@ -179,152 +245,249 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #ccc;
-      transition: .3s;
-      border-radius: 24px;
+      background: var(--border-color);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 28px;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .toggle-slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .3s;
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background: white;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     input:checked + .toggle-slider {
-      background-color: var(--primary-color);
-    }
-
-    input:focus + .toggle-slider {
-      box-shadow: 0 0 1px var(--primary-color);
+      background: var(--gradient-primary);
     }
 
     input:checked + .toggle-slider:before {
-      transform: translateX(22px);
+      transform: translateX(28px);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
-    .button-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 24px;
-    }
-
-    button {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 10px 24px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: background-color 0.2s;
-    }
-
-    button:hover {
-      background-color: var(--primary-hover);
-    }
-
-    .status {
-      margin-top: 16px;
-      padding: 10px;
-      border-radius: 6px;
-      text-align: center;
-      font-size: 14px;
-      display: none;
-      font-weight: 500;
-      transform: translateY(-10px);
-      opacity: 0;
-      transition: transform 0.3s, opacity 0.3s;
-    }
-
-    .success {
-      background-color: rgba(16, 163, 127, 0.1);
-      color: var(--primary-color);
-      display: block;
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .notice {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-top: 24px;
-      text-align: center;
-    }
-
-    /* Token meter styles */
+    /* Token Meter Styles */
     #token-usage-card {
-      margin-bottom: 24px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+      border: 2px solid transparent;
+      background-clip: padding-box;
     }
 
     .token-meter-info {
-      font-size: 15px;
-      font-weight: 500;
+      font-size: 18px;
+      font-weight: 700;
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 16px;
+      color: var(--text-color);
     }
 
     .token-meter-progress {
-      margin-bottom: 8px;
+      margin-bottom: 12px;
+      position: relative;
     }
 
     .token-meter-bar {
-      height: 8px;
-      background-color: rgba(0, 0, 0, 0.1);
-      border-radius: 4px;
+      height: 12px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 12px;
       overflow: hidden;
+      position: relative;
+    }
+
+    .token-meter-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
     }
 
     #token-meter-fill {
       height: 100%;
       width: 0%;
-      background-color: var(--primary-color);
-      border-radius: 4px;
-      transition: width 0.3s ease, background-color 0.3s ease;
+      background: var(--gradient-primary);
+      border-radius: 12px;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
     }
 
     .token-meter-model {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-secondary);
       text-align: center;
-      margin-top: 4px;
+      font-weight: 500;
     }
-    
-    /* Platform toggle help text */
+
+    /* Button Styles */
+    .button-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 32px;
+    }
+
+    button {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* Status Messages */
+    .status {
+      margin-top: 20px;
+      padding: 16px 24px;
+      border-radius: 16px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+      transform: translateY(-10px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .success {
+      background: linear-gradient(135deg, rgba(72, 187, 120, 0.1) 0%, rgba(56, 249, 215, 0.1) 100%);
+      color: var(--success);
+      border: 2px solid rgba(72, 187, 120, 0.2);
+      display: block;
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Platform Help Text */
     .platform-help {
-      font-size: 12px;
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 4px;
+      margin-left: 36px;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    /* Notice */
+    .notice {
+      font-size: 14px;
       color: var(--text-secondary);
-      margin-top: 2px;
-      margin-left: 30px;
-      margin-bottom: 6px;
+      margin-top: 32px;
+      text-align: center;
+      padding: 20px;
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 16px;
+      border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 640px) {
+      .container {
+        padding: 20px 16px;
+      }
+      
+      .card {
+        padding: 24px 20px;
+      }
+      
+      .model-item:hover, .platform-item:hover {
+        margin: 0 -12px;
+        padding: 16px 12px;
+      }
+      
+      input[type="number"] {
+        width: 120px;
+      }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--gradient-primary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-hover);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>TokenFlow Options</h1>
-      <p class="description">Customize token limits for different models to match your needs.</p>
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>TokenFlow</h1>
+      <p class="description">Keep track of your AI conversations with style! ✨</p>
     </div>
     
     <div class="card" id="token-usage-card">
       <h2 class="card-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" stroke-width="2"/>
-          <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Current Token Usage
+        Live Token Usage
       </h2>
       
       <div id="token-meter-container">
         <div class="token-meter-info">
-          <span id="token-meter-text">Loading token information...</span>
+          <span id="token-meter-text">Ready to track your tokens! 🚀</span>
         </div>
         <div class="token-meter-progress">
           <div class="token-meter-bar">
@@ -332,18 +495,17 @@
           </div>
         </div>
         <div class="token-meter-model">
-          <span id="current-model">No active chat</span>
+          <span id="current-model">Start a conversation to see magic happen ✨</span>
         </div>
       </div>
     </div>
     
     <div class="card">
       <h2 class="card-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 7L12 3L4 7V17L12 21L20 17V7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 12L12 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M4 7L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M20 7L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Model Token Limits
       </h2>
@@ -351,7 +513,7 @@
       <div class="model-item">
         <div class="model-name">GPT-4o</div>
         <div class="model-tokens">
-          <input type="number" id="gpt-4o" min="1000" max="200000" step="1000">
+          <input type="number" id="gpt-4o" min="1" max="1000000" step="1000">
           <span class="token-suffix">tokens</span>
         </div>
       </div>
@@ -359,7 +521,7 @@
       <div class="model-item">
         <div class="model-name">GPT-4.1</div>
         <div class="model-tokens">
-          <input type="number" id="gpt-4.1" min="1000" max="1000000" step="1000">
+          <input type="number" id="gpt-4.1" min="1" max="1000000" step="1000">
           <span class="token-suffix">tokens</span>
         </div>
       </div>
@@ -367,7 +529,7 @@
       <div class="model-item">
         <div class="model-name">GPT-4.1-mini</div>
         <div class="model-tokens">
-          <input type="number" id="gpt-4.1-mini" min="1000" max="1000000" step="1000">
+          <input type="number" id="gpt-4.1-mini" min="1" max="1000000" step="1000">
           <span class="token-suffix">tokens</span>
         </div>
       </div>
@@ -375,7 +537,7 @@
       <div class="model-item">
         <div class="model-name">o3</div>
         <div class="model-tokens">
-          <input type="number" id="o3" min="1000" max="200000" step="1000">
+          <input type="number" id="o3" min="1" max="1000000" step="1000">
           <span class="token-suffix">tokens</span>
         </div>
       </div>
@@ -383,7 +545,7 @@
       <div class="model-item">
         <div class="model-name">o4-mini</div>
         <div class="model-tokens">
-          <input type="number" id="o4-mini" min="1000" max="200000" step="1000">
+          <input type="number" id="o4-mini" min="1" max="1000000" step="1000">
           <span class="token-suffix">tokens</span>
         </div>
       </div>
@@ -391,7 +553,7 @@
       <div class="model-item">
         <div class="model-name">o4-mini-high</div>
         <div class="model-tokens">
-          <input type="number" id="o4-mini-high" min="1000" max="200000" step="1000">
+          <input type="number" id="o4-mini-high" min="1" max="1000000" step="1000">
           <span class="token-suffix">tokens</span>
         </div>
       </div>
@@ -399,7 +561,7 @@
       <div class="model-item">
         <div class="model-name">GPT-4.5</div>
         <div class="model-tokens">
-          <input type="number" id="gpt-4.5" min="1000" max="200000" step="1000">
+          <input type="number" id="gpt-4.5" min="1010" max="1000000" step="1000">
           <span class="token-suffix">tokens</span>
         </div>
       </div>
@@ -407,13 +569,13 @@
     
     <div class="card">
       <h2 class="card-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Platform Settings
+        Platforms
       </h2>
-      <p style="margin-top: 0; color: var(--text-secondary); margin-bottom: 16px; font-size: 14px;">
-        Enable or disable TokenFlow for specific platforms.
+      <p style="margin-top: 0; color: var(--text-secondary); margin-bottom: 20px; font-size: 15px;">
+        Choose where you want to see TokenFlow in action! 🎯
       </p>
       
       <div class="platform-item">
@@ -430,7 +592,7 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="platform-help">Toggles only the floating UI display. The extension remains active.</p>
+      <p class="platform-help">Controls UI visibility only - extension stays active</p>
       
       <div class="platform-item">
         <div class="platform-name">
@@ -448,7 +610,7 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="platform-help">Toggles only the floating UI display. The extension remains active.</p>
+      <p class="platform-help">Controls UI visibility only - extension stays active</p>
       
       <div class="platform-item">
         <div class="platform-name">
@@ -481,7 +643,7 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="platform-help">Toggles only the floating UI display. The extension remains active.</p>
+      <p class="platform-help">Controls UI visibility only - extension stays active</p>
       
       <div class="platform-item">
         <div class="platform-name">
@@ -497,18 +659,20 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="platform-help">Toggles only the floating UI display. The extension remains active.</p>
+      <p class="platform-help">Controls UI visibility only - extension stays active</p>
     </div>
     
     <div class="button-container">
-      <button id="save">Save Settings</button>
+      <button id="save">Save My Settings ✨</button>
     </div>
     
     <div id="status" class="status"></div>
     
     <div class="notice">
-      Token counts are approximate and may differ slightly from official OpenAI counts.
-      These settings only affect how TokenFlow displays information.
+      <strong>📋 Important Notes:</strong><br><br>
+      🔤 <strong>Text-only tracking:</strong> TokenFlow calculates tokens based on text content only. Images, audio, videos, and other media files are not included in token counts.<br><br>
+      📊 <strong>Approximate limits:</strong> Token limits shown may differ from actual platform limits, as web interfaces often have different constraints than API limits.<br><br>
+      ⚙️ <strong>Display settings:</strong> These options only control how TokenFlow displays information - the extension continues working behind the scenes regardless.
     </div>
   </div>
   

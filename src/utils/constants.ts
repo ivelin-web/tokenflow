@@ -1,7 +1,7 @@
 // Constants for the extension
-export const DEBUG_ENABLED = false; // Set to false for production
+export const DEBUG_ENABLED = process.env.NODE_ENV !== 'production';
 
-// Debug logger that can be easily disabled for production
+// Debug logger that automatically detects dev/prod environment  
 export const debugLog = (...args: any[]) => {
   if (DEBUG_ENABLED) {
     console.debug('TokenFlow:', ...args);

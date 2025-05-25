@@ -10,27 +10,27 @@ export const chatGptConfig: PlatformConfig = {
     },
     'gpt-4.1': {
       name: 'GPT-4.1',
-      maxTokens: 1000000,
+      maxTokens: 128000,
       tokenizerType: TokenizerType.GPT,
     },
     'gpt-4.1-mini': {
       name: 'GPT-4.1-mini',
-      maxTokens: 1000000,
+      maxTokens: 128000,
       tokenizerType: TokenizerType.GPT,
     },
     'o3': {
       name: 'o3',
-      maxTokens: 200000,
+      maxTokens: 128000,
       tokenizerType: TokenizerType.GPT,
     },
     'o4-mini': {
       name: 'o4-mini',
-      maxTokens: 200000,
+      maxTokens: 128000,
       tokenizerType: TokenizerType.GPT,
     },
     'o4-mini-high': {
       name: 'o4-mini-high',
-      maxTokens: 200000,
+      maxTokens: 128000,
       tokenizerType: TokenizerType.GPT,
     },
     'gpt-4.5': {

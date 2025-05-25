@@ -1,5 +1,5 @@
 import { ContextMeterData, ModelConfig, TokenCache, TokenizerType } from '../types';
-import { countTokens, countConversationTokens, selectTokenizer } from '../tokenizers/gpt';
+import { countTokens, countConversationTokens, getGPTTokenizer } from '../tokenizers/gpt';
 import { debugLog } from './constants';
 
 export class ContextCalculator {

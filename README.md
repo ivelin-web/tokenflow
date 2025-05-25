@@ -11,6 +11,14 @@ A lightweight Chrome extension that tracks token usage in AI chat platforms like
 - **Lightweight & Fast**: Optimized bundle with dynamic loading
 - **Privacy-First**: All processing happens locally in your browser
 
+## Important Limitations
+
+⚠️ **Text-Only Tracking**: TokenFlow currently tracks tokens from text content only. Images, audio, videos, attachments, and other media files are **not included** in token calculations.
+
+⚠️ **Approximate Limits**: Token limits shown may differ from actual platform limits. Web interfaces often have different constraints than API limits, and these can change without notice.
+
+⚠️ **Estimation Accuracy**: Token counts are approximations based on available tokenization algorithms and may vary slightly from official platform counts.
+
 ## Installation
 
 ### From Source (Development)
@@ -47,11 +55,11 @@ npm run build
 
 ### ChatGPT
 - GPT-4o (128k tokens)
-- GPT-4.1 (1M tokens)
-- GPT-4.1-mini (1M tokens)
-- o3 (200k tokens)
-- o4-mini (200k tokens)
-- o4-mini-high (200k tokens)
+- GPT-4.1 (128k tokens)
+- GPT-4.1-mini (128k tokens)
+- o3 (128k tokens)
+- o4-mini (128k tokens)
+- o4-mini-high (128k tokens)
 - GPT-4.5 (128k tokens)
 
 ## Development
@@ -161,7 +169,7 @@ The extension uses a modular architecture:
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License - see [LICENSE](LICENSE) file for details
 
 ## Support
 

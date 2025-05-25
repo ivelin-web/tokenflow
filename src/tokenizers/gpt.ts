@@ -53,10 +53,10 @@ async function loadGPTTokenizer(): Promise<TokenizerInterface> {
 }
 
 /**
- * Select the tokenizer - always returns GPT-4o tokenizer
+ * Get the GPT tokenizer for all GPT models
  */
-export function selectTokenizer(model: string): Promise<TokenizerInterface> {
-  debugLog('Using GPT-4o tokenizer for all models');
+export function getGPTTokenizer(): Promise<TokenizerInterface> {
+  debugLog('Using GPT-4o tokenizer for all GPT models');
   return loadGPTTokenizer();
 }
 
