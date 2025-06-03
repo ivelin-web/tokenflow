@@ -1,20 +1,5 @@
 import { debugLog } from './utils/constants';
-
-// Define Chrome storage schema
-interface StorageData {
-  modelTokenLimits?: Record<string, number>;
-  enabledPlatforms?: Record<string, boolean>;
-  currentContextData?: ContextMeterData;
-}
-
-// Define ContextMeterData type
-interface ContextMeterData {
-  used: number;
-  max: number;
-  pct: number;
-  model: string;
-  isApproximate: boolean;
-}
+import { StorageData, ContextMeterData } from './types';
 
 // Default token limits for ChatGPT models
 const DEFAULT_LIMITS = {

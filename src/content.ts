@@ -1,15 +1,9 @@
 import { ContextCalculator } from './utils/contextCalculator';
 import { TokenMeterUI } from './utils/uiComponent';
 import { PlatformManager } from './utils/platformManager';
-import { Platform, ContextMeterData } from './types';
+import { Platform, ContextMeterData, StorageData } from './types';
 import { debugLog, EXTENSION_CONFIG } from './utils/constants';
 
-// Chrome storage schema
-interface StorageData {
-  modelTokenLimits?: Record<string, number>;
-  enabledPlatforms?: Record<string, boolean>;
-  currentContextData?: ContextMeterData;
-}
 
 console.log('%cTokenFlow Extension Loaded', 'background: #4CAF50; color: white; padding: 5px; border-radius: 5px; font-weight: bold;');
 

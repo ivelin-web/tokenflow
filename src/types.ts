@@ -41,4 +41,10 @@ export interface PlatformConfig {
 
 export interface TokenCache {
   [messageId: string]: number;
-} 
+}
+
+export interface StorageData {
+  modelTokenLimits?: Record<string, number>;
+  enabledPlatforms?: Record<string, boolean>;
+  currentContextData?: ContextMeterData;
+}
