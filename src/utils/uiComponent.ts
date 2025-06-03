@@ -58,7 +58,7 @@ export class TokenMeterUI {
     });
     
     // Add data attribute for custom tooltip (remove browser title to avoid double tooltips)
-    this.container.setAttribute('data-tooltip', 'Text-only tracking\n• Media files excluded\n• Limits are approximate');
+    this.container.setAttribute('data-tooltip', 'Text-only tracking. Media files are excluded and limits are approximate.');
     
     // Header label with icon - more compact
     const label = document.createElement('div');
