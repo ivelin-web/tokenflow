@@ -1,5 +1,6 @@
 import { debugLog } from './utils/constants';
-import { StorageData, ContextMeterData } from './types';
+import { StorageData, ContextMeterData, Platform } from './types';
+import { PLATFORM_DISPLAY_NAMES, isPlatformSupported } from './utils/platformConfig';
 
 // Default token limits for ChatGPT models
 const DEFAULT_LIMITS = {
@@ -163,9 +164,70 @@ function saveSettings(): void {
   });
 }
 
+// Show content for unsupported platform
+function showUnsupportedPlatformContent(platform: Platform): void {
+  debugLog('Showing unsupported platform content for:', platform);
+  
+  // Hide the token usage and model limits cards
+  const tokenUsageCard = document.getElementById('token-usage-card');
+  const modelLimitsCard = document.querySelector('.card:nth-child(4)');
+  
+  if (tokenUsageCard) {
+    (tokenUsageCard as HTMLElement).style.display = 'none';
+  }
+  
+  if (modelLimitsCard) {
+    (modelLimitsCard as HTMLElement).style.display = 'none';
+  }
+  
+  // Show the unsupported platform card
+  const unsupportedCard = document.getElementById('unsupported-platform-card');
+  const platformNameElement = document.getElementById('unsupported-platform-name');
+  
+  if (unsupportedCard && platformNameElement) {
+    const platformName = PLATFORM_DISPLAY_NAMES[platform];
+    platformNameElement.textContent = `${platformName} Support Coming Soon!`;
+    (unsupportedCard as HTMLElement).style.display = 'block';
+  }
+}
+
+// Check if options page is being viewed from a supported platform tab
+function checkCurrentPlatform(): void {
+  if (chrome.tabs) {
+    // First check if we're in a tab
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0) {
+        const currentTab = tabs[0];
+        
+        // Check if URL matches any of the platforms
+        const url = currentTab.url || '';
+        let detectedPlatform: Platform | null = null;
+        
+        if (url.includes('chatgpt.com') || url.includes('chat.openai.com')) {
+          detectedPlatform = Platform.ChatGPT;
+        } else if (url.includes('claude.ai')) {
+          detectedPlatform = Platform.Claude;
+        } else if (url.includes('gemini.google.com')) {
+          detectedPlatform = Platform.Gemini;
+        } else if (url.includes('grok.com') || url.includes('x.ai')) {
+          detectedPlatform = Platform.Grok;
+        }
+        
+        // If it's an unsupported platform, show the special UI
+        if (detectedPlatform && !isPlatformSupported(detectedPlatform)) {
+          showUnsupportedPlatformContent(detectedPlatform);
+        }
+      }
+    });
+  }
+}
+
 // Initialize the options page
 document.addEventListener('DOMContentLoaded', () => {
   debugLog('DOM content loaded');
+  
+  // Check if we're on an unsupported platform
+  checkCurrentPlatform();
   
   // Load saved settings
   loadSettings();

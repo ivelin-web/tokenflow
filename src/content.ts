@@ -1,8 +1,9 @@
 import { ContextCalculator } from './utils/contextCalculator';
 import { TokenMeterUI } from './utils/uiComponent';
 import { PlatformManager } from './utils/platformManager';
-import { Platform, ContextMeterData, StorageData } from './types';
+import { ContextMeterData, StorageData } from './types';
 import { debugLog, EXTENSION_CONFIG } from './utils/constants';
+import { isPlatformSupported } from './utils/platformConfig';
 
 
 console.log('%cTokenFlow Extension Loaded', 'background: #4CAF50; color: white; padding: 5px; border-radius: 5px; font-weight: bold;');
@@ -57,19 +58,41 @@ class ContextMeter {
       }
       
       await this.loadSettings();
-      this.setupStorageListener();
-      
-      if (this.isPlatformEnabled) {
-        this.setupFullFunctionality();
+
+      // For platforms that aren't fully supported yet, disable by default unless explicitly enabled
+      const currentPlatform = this.platformManager.getPlatform();
+      if (currentPlatform && !isPlatformSupported(currentPlatform)) {
+        // Check if this was explicitly set to true in storage, otherwise default to disabled
+        chrome.storage?.sync?.get(['enabledPlatforms'], (data: StorageData) => {
+          const enabledPlatforms = data.enabledPlatforms || {};
+          const isExplicitlyEnabled = enabledPlatforms[currentPlatform] === true;
+          
+          if (!isExplicitlyEnabled) {
+            this.isPlatformEnabled = false;
+            debugLog(`Platform ${currentPlatform} not fully supported yet and not explicitly enabled, defaulting to disabled`);
+          }
+          
+          this.continueInit();
+        });
+      } else {
+        this.continueInit();
       }
-      
-      this.isInitialized = true;
     } catch (error) {
       debugLog('Initialization error', error);
       if (this.isPlatformEnabled) {
         this.ui.mount();
       }
     }
+  }
+
+  private continueInit(): void {
+    this.setupStorageListener();
+    
+    if (this.isPlatformEnabled) {
+      this.setupFullFunctionality();
+    }
+    
+    this.isInitialized = true;
   }
 
   private async loadSettings(): Promise<void> {
