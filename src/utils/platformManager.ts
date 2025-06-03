@@ -1,6 +1,7 @@
 import { Platform, PlatformConfig, ContextMeterData } from '../types';
 import { detectPlatform, getPlatformConfig } from '../tenants';
 import { debugLog } from './constants';
+import { isPlatformSupported } from './platformConfig';
 
 export class PlatformManager {
   private currentPlatform: Platform | null = null;
@@ -16,7 +17,9 @@ export class PlatformManager {
 
   // Check if we're on a supported platform
   isSupported(): boolean {
-    return this.currentPlatform !== null && this.config !== null;
+    return this.currentPlatform !== null && 
+           this.config !== null && 
+           isPlatformSupported(this.currentPlatform);
   }
 
   // Get current platform
