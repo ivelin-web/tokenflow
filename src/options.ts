@@ -28,7 +28,10 @@ function loadSettings(): void {
     debugLog('Retrieved settings:', data);
     
     const limits = data.modelTokenLimits || DEFAULT_LIMITS;
-    const platforms = data.enabledPlatforms || DEFAULT_PLATFORMS;
+    const platforms = { ...DEFAULT_PLATFORMS, ...(data.enabledPlatforms || {}) } as Record<string, boolean>;
+    platforms.claude = false;
+    platforms.gemini = false;
+    platforms.grok = false;
     
     // Set token limit input values
     for (const [model, limit] of Object.entries(limits)) {
