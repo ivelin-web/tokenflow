@@ -1,20 +1,29 @@
 import { ContextMeterData } from '../types';
-import { debugLog, EXTENSION_CONFIG } from './constants';
+import { debugLog, EXTENSION_CONFIG, DEFAULT_THEME_STORAGE_KEY } from './constants';
 
 export class TokenMeterUI {
   private container: HTMLElement = document.createElement('div');
   private textElement: HTMLElement = document.createElement('div');
   private progressBar: HTMLElement = document.createElement('div');
   private progressInner: HTMLElement = document.createElement('div');
+  private label: HTMLElement = document.createElement('div');
+  private styleElement: HTMLStyleElement = document.createElement('style');
+  private currentTheme: 'light' | 'dark' = 'dark';
+  private themeMedia: MediaQueryList | null = null;
+  private themeObserver: MutationObserver | null = null;
+  private themeCheckIntervalId: number | null = null;
+  private themeStorageKey: string;
   private lastUpdateTimestamp: number = 0;
   private updateQueueTimer: number | null = null;
   private queuedData: ContextMeterData | null = null;
   private static instance: TokenMeterUI | null = null;
   
-  constructor() {
+  constructor(themeStorageKey: string = DEFAULT_THEME_STORAGE_KEY) {
     if (TokenMeterUI.instance) {
       return TokenMeterUI.instance;
     }
+
+    this.themeStorageKey = themeStorageKey;
     
     this.container = document.createElement('div');
     this.container.id = 'tokenflow-container';
@@ -23,6 +32,7 @@ export class TokenMeterUI {
     this.progressInner = document.createElement('div');
     
     this.setupUI();
+    this.initThemeWatcher();
     TokenMeterUI.instance = this;
   }
   
@@ -61,8 +71,8 @@ export class TokenMeterUI {
     this.container.setAttribute('data-tooltip', 'Text-only tracking. Media files are excluded and limits are approximate.');
     
     // Header label with icon - more compact
-    const label = document.createElement('div');
-    label.innerHTML = `
+    this.label = document.createElement('div');
+    this.label.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="margin-right: 6px; opacity: 0.8;">
           <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -70,8 +80,8 @@ export class TokenMeterUI {
         <span>TokenFlow</span>
       </div>
     `;
-    
-    Object.assign(label.style, {
+
+    Object.assign(this.label.style, {
       fontSize: '10px',
       fontWeight: '600',
       opacity: '0.7',
@@ -130,86 +140,14 @@ export class TokenMeterUI {
     });
 
     // CSS animations and tooltip styling
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes tokenflow-shimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(200%); }
-      }
-      
-      @keyframes tokenflow-pulse {
-        0%, 100% { opacity: 0.9; }
-        50% { opacity: 1; }
-      }
-      
-      #tokenflow-container {
-        position: relative;
-      }
-      
-      #tokenflow-container:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: 100%;
-        right: 0;
-        margin-bottom: 12px;
-        background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(45, 45, 45, 0.95));
-        color: #ffffff;
-        padding: 10px 14px;
-        border-radius: 10px;
-        font-size: 11px;
-        font-weight: 500;
-        line-height: 1.3;
-        white-space: pre-line;
-        text-align: left;
-        z-index: ${EXTENSION_CONFIG.MAX_Z_INDEX + 1};
-        box-shadow: 
-          0 8px 32px rgba(0, 0, 0, 0.4),
-          0 2px 8px rgba(0, 0, 0, 0.2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        max-width: 180px;
-        min-width: 140px;
-        pointer-events: none;
-        opacity: 0;
-        transform: translateY(8px) scale(0.95);
-        animation: tooltip-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        font-family: -apple-system, BlinkMacSystemFont, "Segue UI", "SF Pro Display", Roboto, sans-serif;
-      }
-      
-      #tokenflow-container:hover::before {
-        content: "";
-        position: absolute;
-        bottom: 100%;
-        right: 20px;
-        margin-bottom: 4px;
-        width: 0;
-        height: 0;
-        border-left: 6px solid transparent;
-        border-right: 6px solid transparent;
-        border-top: 6px solid rgba(30, 30, 30, 0.95);
-        z-index: ${EXTENSION_CONFIG.MAX_Z_INDEX + 1};
-        opacity: 0;
-        animation: tooltip-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
-      }
-      
-      @keyframes tooltip-appear {
-        0% {
-          opacity: 0;
-          transform: translateY(8px) scale(0.95);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
+    this.styleElement = document.createElement('style');
+    this.styleElement.textContent = this.getStyleContent(this.currentTheme);
+    document.head.appendChild(this.styleElement);
+
     // Build the DOM structure
     this.progressBar.appendChild(shimmer);
     this.progressBar.appendChild(this.progressInner);
-    this.container.appendChild(label);
+    this.container.appendChild(this.label);
     this.container.appendChild(this.textElement);
     this.container.appendChild(this.progressBar);
     
@@ -326,8 +264,10 @@ export class TokenMeterUI {
       progressColor = 'rgba(245, 158, 11, 0.9)';
       backgroundOpacity = '0.16';
     } else {
-      // Normal - White progress bar
-      progressColor = 'rgba(255, 255, 255, 0.8)';
+      // Normal - theme based progress bar
+      progressColor = this.currentTheme === 'dark'
+        ? 'rgba(255, 255, 255, 0.8)'
+        : 'rgba(0, 0, 0, 0.6)';
       backgroundOpacity = '0.15';
     }
     
@@ -364,5 +304,140 @@ export class TokenMeterUI {
       window.clearTimeout(this.updateQueueTimer);
       this.updateQueueTimer = null;
     }
+
+    if (this.themeCheckIntervalId !== null) {
+      window.clearInterval(this.themeCheckIntervalId);
+      this.themeCheckIntervalId = null;
+    }
+  }
+
+  private detectTheme(): 'light' | 'dark' {
+    try {
+      const stored = localStorage.getItem(this.themeStorageKey);
+      if (stored === 'light' || stored === 'dark') {
+        return stored;
+      }
+    } catch (e) {
+      debugLog('Theme storage read error', e);
+    }
+    const html = document.documentElement;
+    const attr = html.getAttribute('data-theme');
+    if (attr === 'light' || attr === 'dark') {
+      return attr;
+    }
+    if (html.classList.contains('light')) return 'light';
+    if (html.classList.contains('dark')) return 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  private getStyleContent(theme: 'light' | 'dark'): string {
+    const tooltipBg = theme === 'dark'
+      ? 'linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(45, 45, 45, 0.95))'
+      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.95))';
+    const tooltipColor = theme === 'dark' ? '#ffffff' : '#000000';
+    const tooltipBorder = theme === 'dark' ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+    return `
+      @keyframes tokenflow-shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+      }
+
+      @keyframes tokenflow-pulse {
+        0%, 100% { opacity: 0.9; }
+        50% { opacity: 1; }
+      }
+
+      #tokenflow-container {
+        position: relative;
+      }
+
+      #tokenflow-container:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        right: 0;
+        margin-bottom: 12px;
+        background: ${tooltipBg};
+        color: ${tooltipColor};
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1.3;
+        white-space: pre-line;
+        text-align: left;
+        z-index: ${EXTENSION_CONFIG.MAX_Z_INDEX + 1};
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.4),
+          0 2px 8px rgba(0, 0, 0, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        max-width: 180px;
+        min-width: 140px;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(8px) scale(0.95);
+        animation: tooltip-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        font-family: -apple-system, BlinkMacSystemFont, "Segue UI", "SF Pro Display", Roboto, sans-serif;
+      }
+
+      #tokenflow-container:hover::before {
+        content: "";
+        position: absolute;
+        bottom: 100%;
+        right: 20px;
+        margin-bottom: 4px;
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid ${tooltipBorder};
+        z-index: ${EXTENSION_CONFIG.MAX_Z_INDEX + 1};
+        opacity: 0;
+        animation: tooltip-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+      }
+
+      @keyframes tooltip-appear {
+        0% {
+          opacity: 0;
+          transform: translateY(8px) scale(0.95);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+    `;
+  }
+
+  private applyTheme(theme: 'light' | 'dark'): void {
+    const isDark = theme === 'dark';
+    this.container.style.background = isDark ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.25)';
+    this.container.style.color = isDark ? '#ffffff' : '#000000';
+    this.container.style.border = isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0,0,0,0.1)';
+    this.textElement.style.color = isDark ? '#ffffff' : '#000000';
+    this.label.style.color = isDark ? '#ffffff' : '#000000';
+    this.progressBar.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0,0,0,0.1)';
+    this.progressInner.style.background = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0,0,0,0.6)';
+    this.styleElement.textContent = this.getStyleContent(theme);
+  }
+
+  private handleThemeChange = (): void => {
+    const newTheme = this.detectTheme();
+    if (newTheme !== this.currentTheme) {
+      this.currentTheme = newTheme;
+      this.applyTheme(this.currentTheme);
+    }
+  };
+
+  private initThemeWatcher(): void {
+    this.currentTheme = this.detectTheme();
+    this.applyTheme(this.currentTheme);
+    this.themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+    this.themeMedia.addEventListener('change', this.handleThemeChange);
+    this.themeObserver = new MutationObserver(this.handleThemeChange);
+    this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+    this.themeCheckIntervalId = window.setInterval(this.handleThemeChange, 1000);
   }
 } 
