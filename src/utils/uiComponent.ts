@@ -1,19 +1,56 @@
 import { ContextMeterData } from '../types';
-import { debugLog, EXTENSION_CONFIG } from './constants';
+import { debugLog, EXTENSION_CONFIG, DEFAULT_THEME_STORAGE_KEY } from './constants';
+import type { PlatformConfig } from '../types';
+
+interface ThemeColors {
+  background: string;
+  color: string;
+  border: string;
+  progressBg: string;
+  progressBar: string;
+}
 
 export class TokenMeterUI {
   private container: HTMLElement = document.createElement('div');
   private textElement: HTMLElement = document.createElement('div');
   private progressBar: HTMLElement = document.createElement('div');
   private progressInner: HTMLElement = document.createElement('div');
+  private label: HTMLElement = document.createElement('div');
+  private styleElement: HTMLStyleElement = document.createElement('style');
+  private currentTheme: 'light' | 'dark' = 'dark';
+  private themeStorageKey: string = DEFAULT_THEME_STORAGE_KEY;
+  private themeConfig: PlatformConfig['themeConfig'] | undefined;
+  private cleanup: (() => void)[] = [];
   private lastUpdateTimestamp: number = 0;
   private updateQueueTimer: number | null = null;
   private queuedData: ContextMeterData | null = null;
   private static instance: TokenMeterUI | null = null;
   
-  constructor() {
+  private readonly themes: Record<'light' | 'dark', ThemeColors> = {
+    dark: {
+      background: 'rgba(102, 126, 234, 0.15)',
+      color: '#ffffff',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      progressBg: 'rgba(255, 255, 255, 0.2)',
+      progressBar: 'rgba(255, 255, 255, 0.8)'
+    },
+    light: {
+      background: 'rgba(102, 126, 234, 0.25)',
+      color: '#000000',
+      border: '1px solid rgba(0, 0, 0, 0.1)',
+      progressBg: 'rgba(0, 0, 0, 0.1)',
+      progressBar: 'rgba(0, 0, 0, 0.6)'
+    }
+  };
+  
+  constructor(themeConfig?: PlatformConfig['themeConfig']) {
     if (TokenMeterUI.instance) {
       return TokenMeterUI.instance;
+    }
+
+    if (themeConfig) {
+      this.themeConfig = themeConfig;
+      this.themeStorageKey = themeConfig.storageKey;
     }
     
     this.container = document.createElement('div');
@@ -23,20 +60,19 @@ export class TokenMeterUI {
     this.progressInner = document.createElement('div');
     
     this.setupUI();
+    this.initThemeDetection();
     TokenMeterUI.instance = this;
   }
   
   // Create and style the UI elements with modern design
   private setupUI(): void {
-    // Container styles - compact glass-morphism design
+    // Container styles - compact glass-morphism design  
     Object.assign(this.container.style, {
       position: 'fixed',
       bottom: '16px',
       right: '16px',
-      background: 'rgba(102, 126, 234, 0.15)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)', // Safari support
-      color: '#ffffff',
       padding: '10px 12px',
       borderRadius: '12px',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
@@ -47,7 +83,6 @@ export class TokenMeterUI {
       width: '140px',
       minWidth: '120px',
       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(102, 126, 234, 0.2)',
-      border: '1px solid rgba(255, 255, 255, 0.3)',
       pointerEvents: 'auto',
       userSelect: 'none',
       visibility: 'visible',
@@ -61,8 +96,8 @@ export class TokenMeterUI {
     this.container.setAttribute('data-tooltip', 'Text-only tracking. Media files are excluded and limits are approximate.');
     
     // Header label with icon - more compact
-    const label = document.createElement('div');
-    label.innerHTML = `
+    this.label = document.createElement('div');
+    this.label.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="margin-right: 6px; opacity: 0.8;">
           <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -70,15 +105,14 @@ export class TokenMeterUI {
         <span>TokenFlow</span>
       </div>
     `;
-    
-    Object.assign(label.style, {
+
+    Object.assign(this.label.style, {
       fontSize: '10px',
       fontWeight: '600',
       opacity: '0.7',
       textAlign: 'left',
       textTransform: 'uppercase',
       letterSpacing: '0.5px',
-      color: '#ffffff',
       textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
     });
     
@@ -90,7 +124,6 @@ export class TokenMeterUI {
       fontWeight: '500',
       fontSize: '12px',
       fontVariantNumeric: 'tabular-nums',
-      color: '#ffffff',
       textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
       lineHeight: '1.2'
     });
@@ -99,7 +132,6 @@ export class TokenMeterUI {
     Object.assign(this.progressBar.style, {
       height: '4px',
       width: '100%',
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
       borderRadius: '4px',
       overflow: 'hidden',
       marginTop: '4px',
@@ -123,93 +155,20 @@ export class TokenMeterUI {
     Object.assign(this.progressInner.style, {
       height: '100%',
       width: '0%',
-      background: 'rgba(255, 255, 255, 0.8)',
       transition: 'all 0.4s ease',
       borderRadius: '4px',
       position: 'relative'
     });
 
     // CSS animations and tooltip styling
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes tokenflow-shimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(200%); }
-      }
-      
-      @keyframes tokenflow-pulse {
-        0%, 100% { opacity: 0.9; }
-        50% { opacity: 1; }
-      }
-      
-      #tokenflow-container {
-        position: relative;
-      }
-      
-      #tokenflow-container:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: 100%;
-        right: 0;
-        margin-bottom: 12px;
-        background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(45, 45, 45, 0.95));
-        color: #ffffff;
-        padding: 10px 14px;
-        border-radius: 10px;
-        font-size: 11px;
-        font-weight: 500;
-        line-height: 1.3;
-        white-space: pre-line;
-        text-align: left;
-        z-index: ${EXTENSION_CONFIG.MAX_Z_INDEX + 1};
-        box-shadow: 
-          0 8px 32px rgba(0, 0, 0, 0.4),
-          0 2px 8px rgba(0, 0, 0, 0.2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        max-width: 180px;
-        min-width: 140px;
-        pointer-events: none;
-        opacity: 0;
-        transform: translateY(8px) scale(0.95);
-        animation: tooltip-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        font-family: -apple-system, BlinkMacSystemFont, "Segue UI", "SF Pro Display", Roboto, sans-serif;
-      }
-      
-      #tokenflow-container:hover::before {
-        content: "";
-        position: absolute;
-        bottom: 100%;
-        right: 20px;
-        margin-bottom: 4px;
-        width: 0;
-        height: 0;
-        border-left: 6px solid transparent;
-        border-right: 6px solid transparent;
-        border-top: 6px solid rgba(30, 30, 30, 0.95);
-        z-index: ${EXTENSION_CONFIG.MAX_Z_INDEX + 1};
-        opacity: 0;
-        animation: tooltip-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
-      }
-      
-      @keyframes tooltip-appear {
-        0% {
-          opacity: 0;
-          transform: translateY(8px) scale(0.95);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
+    this.styleElement = document.createElement('style');
+    this.styleElement.textContent = this.getStyleContent(this.currentTheme);
+    document.head.appendChild(this.styleElement);
+
     // Build the DOM structure
     this.progressBar.appendChild(shimmer);
     this.progressBar.appendChild(this.progressInner);
-    this.container.appendChild(label);
+    this.container.appendChild(this.label);
     this.container.appendChild(this.textElement);
     this.container.appendChild(this.progressBar);
     
@@ -326,8 +285,8 @@ export class TokenMeterUI {
       progressColor = 'rgba(245, 158, 11, 0.9)';
       backgroundOpacity = '0.16';
     } else {
-      // Normal - White progress bar
-      progressColor = 'rgba(255, 255, 255, 0.8)';
+      // Normal - use theme colors
+      progressColor = this.themes[this.currentTheme].progressBar;
       backgroundOpacity = '0.15';
     }
     
@@ -364,5 +323,159 @@ export class TokenMeterUI {
       window.clearTimeout(this.updateQueueTimer);
       this.updateQueueTimer = null;
     }
+
+    this.cleanup.forEach(fn => fn());
+    this.cleanup = [];
+  }
+
+  private detectTheme(): 'light' | 'dark' {
+    try {
+      const stored = localStorage.getItem(this.themeStorageKey);
+      if (stored && this.themeConfig) {
+        if (this.themeConfig.darkValues?.includes(stored)) return 'dark';
+        if (this.themeConfig.lightValues?.includes(stored)) return 'light';
+        
+        const lowerStored = stored.toLowerCase();
+        if (this.themeConfig.darkContains?.some(val => lowerStored.includes(val.toLowerCase()))) return 'dark';
+        if (this.themeConfig.lightContains?.some(val => lowerStored.includes(val.toLowerCase()))) return 'light';
+      }
+    } catch (e) {
+      debugLog('Theme storage read error', e);
+    }
+    
+    const html = document.documentElement;
+    const dataTheme = html.getAttribute('data-theme');
+    if (dataTheme === 'light' || dataTheme === 'dark') return dataTheme;
+    
+    if (html.classList.contains('light')) return 'light';
+    if (html.classList.contains('dark')) return 'dark';
+    
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  private getStyleContent(theme: 'light' | 'dark'): string {
+    const tooltipBg = theme === 'dark'
+      ? 'linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(45, 45, 45, 0.95))'
+      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.95))';
+    const tooltipColor = theme === 'dark' ? '#ffffff' : '#000000';
+    const tooltipBorder = theme === 'dark' ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+    return `
+      @keyframes tokenflow-shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+      }
+
+      @keyframes tokenflow-pulse {
+        0%, 100% { opacity: 0.9; }
+        50% { opacity: 1; }
+      }
+
+      #tokenflow-container {
+        position: relative;
+      }
+
+      #tokenflow-container:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        right: 0;
+        margin-bottom: 12px;
+        background: ${tooltipBg};
+        color: ${tooltipColor};
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1.3;
+        white-space: pre-line;
+        text-align: left;
+        z-index: ${EXTENSION_CONFIG.MAX_Z_INDEX + 1};
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.4),
+          0 2px 8px rgba(0, 0, 0, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        max-width: 180px;
+        min-width: 140px;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(8px) scale(0.95);
+        animation: tooltip-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        font-family: -apple-system, BlinkMacSystemFont, "Segue UI", "SF Pro Display", Roboto, sans-serif;
+      }
+
+      #tokenflow-container:hover::before {
+        content: "";
+        position: absolute;
+        bottom: 100%;
+        right: 20px;
+        margin-bottom: 4px;
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid ${tooltipBorder};
+        z-index: ${EXTENSION_CONFIG.MAX_Z_INDEX + 1};
+        opacity: 0;
+        animation: tooltip-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+      }
+
+      @keyframes tooltip-appear {
+        0% {
+          opacity: 0;
+          transform: translateY(8px) scale(0.95);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+    `;
+  }
+
+  private applyTheme(theme: 'light' | 'dark'): void {
+    const colors = this.themes[theme];
+    
+    this.container.style.background = colors.background;
+    this.container.style.color = colors.color;
+    this.container.style.border = colors.border;
+    
+    this.textElement.style.color = colors.color;
+    this.label.style.color = colors.color;
+    this.progressBar.style.backgroundColor = colors.progressBg;
+    this.progressInner.style.background = colors.progressBar;
+    
+    this.styleElement.textContent = this.getStyleContent(theme);
+  }
+
+  private handleThemeChange = (): void => {
+    const newTheme = this.detectTheme();
+    if (newTheme !== this.currentTheme) {
+      this.currentTheme = newTheme;
+      this.applyTheme(this.currentTheme);
+    }
+  };
+
+  private initThemeDetection(): void {
+    this.currentTheme = this.detectTheme();
+    this.applyTheme(this.currentTheme);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', this.handleThemeChange);
+    this.cleanup.push(() => mediaQuery.removeEventListener('change', this.handleThemeChange));
+
+    const observer = new MutationObserver(this.handleThemeChange);
+    observer.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ['data-theme', 'class'] 
+    });
+    this.cleanup.push(() => observer.disconnect());
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === this.themeStorageKey) this.handleThemeChange();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    this.cleanup.push(() => window.removeEventListener('storage', handleStorageChange));
   }
 } 

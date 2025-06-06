@@ -18,4 +18,6 @@ export const EXTENSION_CONFIG = {
   UI_UPDATE_COOLDOWN_MS: 500,
   SYNC_STORAGE_DELAY_MS: 2000,
   MAX_Z_INDEX: 2147483647,
-} as const; 
+} as const;
+
+export const DEFAULT_THEME_STORAGE_KEY = 'theme';

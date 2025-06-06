@@ -37,6 +37,13 @@ export interface PlatformConfig {
   defaultModel: string;
   // Simple pattern matching for model detection
   modelPatterns: Array<{ text: string; model: string }>;
+  themeConfig?: {
+    storageKey: string;
+    darkValues?: string[];
+    darkContains?: string[];
+    lightValues?: string[];
+    lightContains?: string[];
+  };
 }
 
 export interface TokenCache {

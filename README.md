@@ -11,6 +11,32 @@ A lightweight Chrome extension that tracks token usage in AI chat platforms like
 - **Lightweight & Fast**: Optimized bundle with dynamic loading
 - **Privacy-First**: All processing happens locally in your browser
 
+## Theme Detection
+
+TokenFlow automatically adapts to your platform's theme (light/dark mode) for optimal visibility and user experience.
+
+### How It Works
+
+The extension uses intelligent theme detection with multiple fallback layers:
+
+1. **Platform Storage**: Reads theme preferences from platform-specific localStorage keys
+2. **DOM Attributes**: Checks `data-theme` attributes on the document
+3. **CSS Classes**: Looks for theme-related CSS classes (`.light`, `.dark`)
+4. **System Preference**: Falls back to your browser/OS dark mode setting
+
+### Platform Support
+
+Different platforms store theme preferences differently:
+
+- **ChatGPT**: Uses `localStorage['theme']` with values `'dark'` or `'light'`
+- **Gemini**: Uses `localStorage['Bard-Color-Theme']` with substring matching
+- **Other platforms**: Configurable exact or substring matching
+
+The extension automatically detects theme changes in real-time, including:
+- Manual theme switching within the platform
+- System dark/light mode changes
+- Theme synchronization across browser tabs
+
 ## Important Limitations
 
 ⚠️ **Text-Only Tracking**: TokenFlow currently tracks tokens from text content only. Images, audio, videos, attachments, and other media files are **not included** in token calculations.
@@ -107,6 +133,14 @@ export const newPlatformConfig: PlatformConfig = {
   conversationSelector: '[data-conversation]', // CSS selector for messages
   modelSelector: '[data-model-selector]',      // CSS selector for model picker
   defaultModel: 'model-name',
+  themeConfig: {
+    storageKey: 'theme',                       // localStorage key for theme
+    darkValues: ['dark'],                      // Exact matches for dark theme
+    lightValues: ['light'],                    // Exact matches for light theme
+    // Optional: substring matching
+    // darkContains: ['dark'],                 // Substring matches for dark theme  
+    // lightContains: ['light'],               // Substring matches for light theme
+  },
   modelPatterns: [
     { text: 'model-name', model: 'model-name' },
   ],
