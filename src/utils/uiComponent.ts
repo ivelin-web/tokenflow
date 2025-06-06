@@ -1,5 +1,14 @@
 import { ContextMeterData } from '../types';
 import { debugLog, EXTENSION_CONFIG, DEFAULT_THEME_STORAGE_KEY } from './constants';
+import type { PlatformConfig } from '../types';
+
+interface ThemeColors {
+  background: string;
+  color: string;
+  border: string;
+  progressBg: string;
+  progressBar: string;
+}
 
 export class TokenMeterUI {
   private container: HTMLElement = document.createElement('div');
@@ -9,21 +18,40 @@ export class TokenMeterUI {
   private label: HTMLElement = document.createElement('div');
   private styleElement: HTMLStyleElement = document.createElement('style');
   private currentTheme: 'light' | 'dark' = 'dark';
-  private themeMedia: MediaQueryList | null = null;
-  private themeObserver: MutationObserver | null = null;
-  private themeCheckIntervalId: number | null = null;
-  private themeStorageKey: string;
+  private themeStorageKey: string = DEFAULT_THEME_STORAGE_KEY;
+  private themeConfig: PlatformConfig['themeConfig'] | undefined;
+  private cleanup: (() => void)[] = [];
   private lastUpdateTimestamp: number = 0;
   private updateQueueTimer: number | null = null;
   private queuedData: ContextMeterData | null = null;
   private static instance: TokenMeterUI | null = null;
   
-  constructor(themeStorageKey: string = DEFAULT_THEME_STORAGE_KEY) {
+  private readonly themes: Record<'light' | 'dark', ThemeColors> = {
+    dark: {
+      background: 'rgba(102, 126, 234, 0.15)',
+      color: '#ffffff',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      progressBg: 'rgba(255, 255, 255, 0.2)',
+      progressBar: 'rgba(255, 255, 255, 0.8)'
+    },
+    light: {
+      background: 'rgba(102, 126, 234, 0.25)',
+      color: '#000000',
+      border: '1px solid rgba(0, 0, 0, 0.1)',
+      progressBg: 'rgba(0, 0, 0, 0.1)',
+      progressBar: 'rgba(0, 0, 0, 0.6)'
+    }
+  };
+  
+  constructor(themeConfig?: PlatformConfig['themeConfig']) {
     if (TokenMeterUI.instance) {
       return TokenMeterUI.instance;
     }
 
-    this.themeStorageKey = themeStorageKey;
+    if (themeConfig) {
+      this.themeConfig = themeConfig;
+      this.themeStorageKey = themeConfig.storageKey;
+    }
     
     this.container = document.createElement('div');
     this.container.id = 'tokenflow-container';
@@ -32,21 +60,19 @@ export class TokenMeterUI {
     this.progressInner = document.createElement('div');
     
     this.setupUI();
-    this.initThemeWatcher();
+    this.initThemeDetection();
     TokenMeterUI.instance = this;
   }
   
   // Create and style the UI elements with modern design
   private setupUI(): void {
-    // Container styles - compact glass-morphism design
+    // Container styles - compact glass-morphism design  
     Object.assign(this.container.style, {
       position: 'fixed',
       bottom: '16px',
       right: '16px',
-      background: 'rgba(102, 126, 234, 0.15)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)', // Safari support
-      color: '#ffffff',
       padding: '10px 12px',
       borderRadius: '12px',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
@@ -57,7 +83,6 @@ export class TokenMeterUI {
       width: '140px',
       minWidth: '120px',
       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(102, 126, 234, 0.2)',
-      border: '1px solid rgba(255, 255, 255, 0.3)',
       pointerEvents: 'auto',
       userSelect: 'none',
       visibility: 'visible',
@@ -88,7 +113,6 @@ export class TokenMeterUI {
       textAlign: 'left',
       textTransform: 'uppercase',
       letterSpacing: '0.5px',
-      color: '#ffffff',
       textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
     });
     
@@ -100,7 +124,6 @@ export class TokenMeterUI {
       fontWeight: '500',
       fontSize: '12px',
       fontVariantNumeric: 'tabular-nums',
-      color: '#ffffff',
       textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
       lineHeight: '1.2'
     });
@@ -109,7 +132,6 @@ export class TokenMeterUI {
     Object.assign(this.progressBar.style, {
       height: '4px',
       width: '100%',
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
       borderRadius: '4px',
       overflow: 'hidden',
       marginTop: '4px',
@@ -133,7 +155,6 @@ export class TokenMeterUI {
     Object.assign(this.progressInner.style, {
       height: '100%',
       width: '0%',
-      background: 'rgba(255, 255, 255, 0.8)',
       transition: 'all 0.4s ease',
       borderRadius: '4px',
       position: 'relative'
@@ -264,10 +285,8 @@ export class TokenMeterUI {
       progressColor = 'rgba(245, 158, 11, 0.9)';
       backgroundOpacity = '0.16';
     } else {
-      // Normal - theme based progress bar
-      progressColor = this.currentTheme === 'dark'
-        ? 'rgba(255, 255, 255, 0.8)'
-        : 'rgba(0, 0, 0, 0.6)';
+      // Normal - use theme colors
+      progressColor = this.themes[this.currentTheme].progressBar;
       backgroundOpacity = '0.15';
     }
     
@@ -305,28 +324,32 @@ export class TokenMeterUI {
       this.updateQueueTimer = null;
     }
 
-    if (this.themeCheckIntervalId !== null) {
-      window.clearInterval(this.themeCheckIntervalId);
-      this.themeCheckIntervalId = null;
-    }
+    this.cleanup.forEach(fn => fn());
+    this.cleanup = [];
   }
 
   private detectTheme(): 'light' | 'dark' {
     try {
       const stored = localStorage.getItem(this.themeStorageKey);
-      if (stored === 'light' || stored === 'dark') {
-        return stored;
+      if (stored && this.themeConfig) {
+        if (this.themeConfig.darkValues?.includes(stored)) return 'dark';
+        if (this.themeConfig.lightValues?.includes(stored)) return 'light';
+        
+        const lowerStored = stored.toLowerCase();
+        if (this.themeConfig.darkContains?.some(val => lowerStored.includes(val.toLowerCase()))) return 'dark';
+        if (this.themeConfig.lightContains?.some(val => lowerStored.includes(val.toLowerCase()))) return 'light';
       }
     } catch (e) {
       debugLog('Theme storage read error', e);
     }
+    
     const html = document.documentElement;
-    const attr = html.getAttribute('data-theme');
-    if (attr === 'light' || attr === 'dark') {
-      return attr;
-    }
+    const dataTheme = html.getAttribute('data-theme');
+    if (dataTheme === 'light' || dataTheme === 'dark') return dataTheme;
+    
     if (html.classList.contains('light')) return 'light';
     if (html.classList.contains('dark')) return 'dark';
+    
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
 
@@ -412,14 +435,17 @@ export class TokenMeterUI {
   }
 
   private applyTheme(theme: 'light' | 'dark'): void {
-    const isDark = theme === 'dark';
-    this.container.style.background = isDark ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.25)';
-    this.container.style.color = isDark ? '#ffffff' : '#000000';
-    this.container.style.border = isDark ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0,0,0,0.1)';
-    this.textElement.style.color = isDark ? '#ffffff' : '#000000';
-    this.label.style.color = isDark ? '#ffffff' : '#000000';
-    this.progressBar.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0,0,0,0.1)';
-    this.progressInner.style.background = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0,0,0,0.6)';
+    const colors = this.themes[theme];
+    
+    this.container.style.background = colors.background;
+    this.container.style.color = colors.color;
+    this.container.style.border = colors.border;
+    
+    this.textElement.style.color = colors.color;
+    this.label.style.color = colors.color;
+    this.progressBar.style.backgroundColor = colors.progressBg;
+    this.progressInner.style.background = colors.progressBar;
+    
     this.styleElement.textContent = this.getStyleContent(theme);
   }
 
@@ -431,13 +457,25 @@ export class TokenMeterUI {
     }
   };
 
-  private initThemeWatcher(): void {
+  private initThemeDetection(): void {
     this.currentTheme = this.detectTheme();
     this.applyTheme(this.currentTheme);
-    this.themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    this.themeMedia.addEventListener('change', this.handleThemeChange);
-    this.themeObserver = new MutationObserver(this.handleThemeChange);
-    this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
-    this.themeCheckIntervalId = window.setInterval(this.handleThemeChange, 1000);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', this.handleThemeChange);
+    this.cleanup.push(() => mediaQuery.removeEventListener('change', this.handleThemeChange));
+
+    const observer = new MutationObserver(this.handleThemeChange);
+    observer.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ['data-theme', 'class'] 
+    });
+    this.cleanup.push(() => observer.disconnect());
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === this.themeStorageKey) this.handleThemeChange();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    this.cleanup.push(() => window.removeEventListener('storage', handleStorageChange));
   }
 } 

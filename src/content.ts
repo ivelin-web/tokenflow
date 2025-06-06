@@ -20,8 +20,8 @@ class ContextMeter {
 
   constructor() {
     this.platformManager = new PlatformManager();
-    const themeKey = this.platformManager.getConfig()?.themeStorageKey;
-    this.ui = new TokenMeterUI(themeKey);
+    const config = this.platformManager.getConfig();
+    this.ui = new TokenMeterUI(config?.themeConfig);
     
     // Initialize calculator with default model
     if (this.platformManager.isSupported()) {

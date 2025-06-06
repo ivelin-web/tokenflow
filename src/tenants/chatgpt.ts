@@ -42,7 +42,11 @@ export const chatGptConfig: PlatformConfig = {
   conversationSelector: '[data-testid^="conversation-turn-"]',
   modelSelector: 'button[data-testid="model-switcher-dropdown-button"]',
   defaultModel: 'gpt-4o',
-  themeStorageKey: 'theme',
+  themeConfig: {
+    storageKey: 'theme',
+    darkValues: ['dark'],
+    lightValues: ['light']
+  },
   modelPatterns: [
     { text: 'gpt-4.1-mini', model: 'gpt-4.1-mini' },
     { text: 'gpt-4.1', model: 'gpt-4.1' },
