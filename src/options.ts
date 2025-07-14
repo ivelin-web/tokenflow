@@ -8,6 +8,7 @@ const DEFAULT_LIMITS = {
   'gpt-4.1': 128000,
   'gpt-4.1-mini': 128000,
   'o3': 128000,
+  'o3-pro': 128000,
   'o4-mini': 128000,
   'o4-mini-high': 128000,
   'gpt-4.5': 128000

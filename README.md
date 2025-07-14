@@ -84,6 +84,7 @@ npm run build
 - GPT-4.1 (128k tokens)
 - GPT-4.1-mini (128k tokens)
 - o3 (128k tokens)
+- o3-pro (128k tokens)
 - o4-mini (128k tokens)
 - o4-mini-high (128k tokens)
 - GPT-4.5 (128k tokens)
