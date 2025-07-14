@@ -256,14 +256,19 @@ export class TokenMeterUI {
     const maxFormatted = this.formatNumber(data.max);
     const approximateSymbol = data.isApproximate ? '≈ ' : '';
     
-    this.textElement.innerHTML = `
-      <div style="font-size: 11px; opacity: 0.8; margin-bottom: 1px;">
-        ${approximateSymbol}${usedFormatted} / ${maxFormatted}
-      </div>
-      <div style="font-size: 13px; font-weight: 600;">
-        ${data.pct}%
-      </div>
-    `;
+    // Create elements safely without innerHTML
+    this.textElement.innerHTML = '';
+    
+    const topDiv = document.createElement('div');
+    topDiv.style.cssText = 'font-size: 11px; opacity: 0.8; margin-bottom: 1px;';
+    topDiv.textContent = `${approximateSymbol}${usedFormatted} / ${maxFormatted}`;
+    
+    const bottomDiv = document.createElement('div');
+    bottomDiv.style.cssText = 'font-size: 13px; font-weight: 600;';
+    bottomDiv.textContent = `${data.pct}%`;
+    
+    this.textElement.appendChild(topDiv);
+    this.textElement.appendChild(bottomDiv);
     
     // Update progress bar
     this.progressInner.style.width = `${data.pct}%`;
