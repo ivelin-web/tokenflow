@@ -41,4 +41,4 @@ We may update this privacy policy from time to time. Updates will be posted to t
 
 ## Contact
 
-For questions about this privacy policy, visit our [GitHub repository](https://github.com/yourusername/ai-cwt-display).
+For questions about this privacy policy, visit our [GitHub repository](https://github.com/ivelin-web/tokenflow).
